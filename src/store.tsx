@@ -16,15 +16,13 @@ function usePokemonSource(): {
   search: string,
   setSearch: (search: string) => void
 } {
-  // const [pokemon, setPokemon] = useState<Pokemon[]>([])
-  // const [search, setSearch] = useState('')
 
   type PokemonState = {
     pokemon: Pokemon[],
     search: string
   }
 
-  type PokemonAction = {type: 'setPokemon', payload: Pokemon[]} | {type: 'setSearch', payload: string}
+  type PokemonAction = | {type: 'setPokemon', payload: Pokemon[]} | {type: 'setSearch', payload: string}
 
   const[{pokemon, search}, dispatch] = useReducer((state: PokemonState, action: PokemonAction) => {
     switch (action.type) {
@@ -55,10 +53,14 @@ function usePokemonSource(): {
   }, [])
 
   const filteredPokemon = useMemo(() => {
-    return pokemon.filter(p => p.name.includes(search))
+    return pokemon.filter(p => p.name.toLowerCase().includes(search)).slice(0, 20)
   }, [pokemon, search])
 
-  return { pokemon: filteredPokemon, search, setSearch }
+  const sortedPokemon = useMemo(() =>
+    [...filteredPokemon].sort((a, b) => a.name.localeCompare(b.name)
+  ), [filteredPokemon])
+
+  return { pokemon: sortedPokemon, search, setSearch }
 }
 
 const PokemonContext = createContext<ReturnType<typeof usePokemonSource>>(

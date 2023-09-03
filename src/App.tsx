@@ -39,7 +39,6 @@ function PokemonList() {
 function App() {
   return (
     <>
-
       <PokemonProvider>
         <div className="mx-auto max-w-3xl">
           <SearchBox />
