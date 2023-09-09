@@ -1,9 +1,7 @@
 import './App.css'
 import {fetchData, usePokemon} from "./store";
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {Link, Outlet, ReactLocation, Router, useMatch} from "@tanstack/react-location";
 
-const queryClient = new QueryClient()
 const location = new ReactLocation()
 
 function SearchBox() {
