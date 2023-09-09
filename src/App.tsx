@@ -1,20 +1,19 @@
 import './App.css'
-import {fetchData, usePokemon} from "./store";
 import {Link, Outlet, ReactLocation, Router, useMatch} from "@tanstack/react-location";
+import {useSnapshot} from "valtio";
+import {pokemon, fetchData, search} from "./store.tsx";
 
 const location = new ReactLocation()
 
 function SearchBox() {
-  const search = usePokemon(state => state.search) // selector (using that i need in store)
-  const setSearch = usePokemon(state => state.setSearch)
-
+  const snap = useSnapshot(search)
   return (
     <div>
       <input
         className="mt-3 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-800 focus:ring-indigo-800 sm:text-lg p-2"
         placeholder="Search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        value={snap.query}
+        onChange={(e) => search.query = e.target.value}
       />
       <button onClick={fetchData}>Refresh</button>
     </div>
@@ -22,11 +21,11 @@ function SearchBox() {
 }
 
 function PokemonList() {
-  const pokemon = usePokemon(state => state.pokemon)
+  const snap = useSnapshot(pokemon)
 
   return (
     <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-3">
-      {pokemon.map(p => (
+      {snap.list.map(p => (
         // <Link
         //   key={p.id}
         //   to={`pokemon/${p.id}`}
