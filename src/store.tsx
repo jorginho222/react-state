@@ -1,5 +1,5 @@
-import {atom} from "jotai";
-import {atomsWithQuery} from "jotai-tanstack-query";
+import {createSlice, configureStore, type PayloadAction} from "@reduxjs/toolkit";
+import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 
 interface Pokemon {
   id: number,
@@ -13,20 +13,39 @@ interface Pokemon {
   speed: number
 }
 
-export const searchAtom = atom('')
+const pokemonApi = createApi({
+  reducerPath: "pokemonApi",
+  baseQuery: fetchBaseQuery({ baseUrl: "/" }),
+  endpoints: (builder) => ({
+    getPokemon: builder.query<Pokemon[], undefined>({
+        query: () => 'pokemon.json',
+    }),
+  }),
+});
 
-const [allPokemon] = atomsWithQuery<Pokemon[]>(() => ({
-  queryKey: ['pokemon'],
-  queryFn: () => fetch('/pokemon.json').then(response => response.json())
-}))
+export const usePokemonQuery = pokemonApi.endpoints.getPokemon.useQuery()
 
-const pokemonAtom = atom(get => {
-  const search = get(searchAtom)
-  const all = get(allPokemon)
-  return all.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+const searchSlice = createSlice({
+  name: 'search',
+  initialState: {
+    search: '',
+  },
+  reducers: {
+    setSearch: (state, action: PayloadAction<string>) => {
+      state.search = action.payload
+    },
+  }
 })
 
-export const sortedPokemonAtom = atom(get => {
-  const pokemon = get(pokemonAtom)
-  return pokemon.slice(0, 10).sort((a, b) => a.name.localeCompare(b.name))
+export const { setSearch } = searchSlice.actions
+
+export const store = configureStore({
+  reducer: {
+    search: searchSlice.reducer,
+    pokemonApi: pokemonApi.reducer
+  }
 })
+
+export type RootState = ReturnType<typeof store.getState>
+export const selectSearch = (state: RootState) => state.search.search
+
