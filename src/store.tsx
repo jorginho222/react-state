@@ -1,5 +1,5 @@
-import {proxy} from "valtio";
-import {derive} from "valtio/utils";
+import {atom} from "jotai";
+import {atomsWithQuery} from "jotai-tanstack-query";
 
 interface Pokemon {
   id: number,
@@ -13,28 +13,20 @@ interface Pokemon {
   speed: number
 }
 
-export const search = proxy({
-  query: '',
+export const searchAtom = atom('')
+
+const [allPokemon] = atomsWithQuery<Pokemon[]>(() => ({
+  queryKey: ['pokemon'],
+  queryFn: () => fetch('/pokemon.json').then(response => response.json())
+}))
+
+const pokemonAtom = atom(get => {
+  const search = get(searchAtom)
+  const all = get(allPokemon)
+  return all.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
 })
 
-const allPokemon = proxy({
-  pokemon: [] as Pokemon[],
+export const sortedPokemonAtom = atom(get => {
+  const pokemon = get(pokemonAtom)
+  return pokemon.slice(0, 10).sort((a, b) => a.name.localeCompare(b.name))
 })
-
-export const pokemon = derive({
-  list: get => {
-    const query = get(search).query.toLowerCase()
-    return get(allPokemon).pokemon
-      .filter(p => p.name.toLowerCase().includes(query))
-      .slice(0, 10)
-      .sort((a, b) => a.name.localeCompare(b.name))
-  }
-})
-
-export const fetchData = () => fetch('pokemon.json')
-  .then(response => response.json())
-  .then(pokemon => {
-    allPokemon.pokemon = pokemon
-  })
-
-fetchData()
